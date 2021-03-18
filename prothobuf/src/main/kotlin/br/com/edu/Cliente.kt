@@ -1,12 +1,16 @@
 package br.com.edu
 
-import java.io.FileInputStream
-import java.io.FileOutputStream
+import io.grpc.ManagedChannelBuilder
+import java.lang.management.ManagementFactory
 
 fun main() {
+    val channel = ManagedChannelBuilder.forAddress("localhost", 50051)
+        .usePlaintext()
+        .build()
     val request = FuncionarioRequest.newBuilder()
         .setNome("Yuri Matheus")
         .setCpf("000.000.000.00")
+        .setIdade(22)
         .setSalario(2000.20)
         .setAtivo(true)
         .setCargo(Cargo.QA)
@@ -16,13 +20,8 @@ fun main() {
             .setComplemento("Casa 20")
             .build())
         .build() //criando funcionario
-    //escrevemos o objeto
-    println(request)
-    request.writeTo(FileOutputStream("funcionario-request.bin"))
-    //lemos o objeto
-    val request2 = FuncionarioRequest.newBuilder()
-        .mergeFrom(FileInputStream("funcionario-request.bin"))
-    request2.setCargo(Cargo.GERENTE)
-        .build()
-    println(request2)
+    val client = FuncionarioServiceGrpc.newBlockingStub(channel)
+    val response = client.cadastrar(request)
+    println(response)
+
 }
